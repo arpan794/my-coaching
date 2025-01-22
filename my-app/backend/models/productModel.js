@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const productSchema = mongoose.Schema(
+const productSchema = new mongoose.Schema(
 {
     name:{
         type:String,
@@ -82,7 +82,12 @@ const productSchema = mongoose.Schema(
             type:String,
         }
     }],
-},
+    user:{
+        type: mongoose.Schema.ObjectId,
+        ref:"User",
+        required:true,
+    }
+},   
     {
         timestamps:true
     }   

@@ -1,11 +1,13 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import { Product } from "../models/productModel.js";
+import ApiFeatures from "../utils/apiFeatures.js";
 import ErrorHandler from "../utils/errorHandler.js";
 
 
 // create product -- admin
 
  const createProduct = asyncHandler (async (req,res,next) => {
+    req.body.user = req.user.id;
      const product = await Product.create(req.body);
      res.status(201).json({
         success:true,
@@ -18,10 +20,18 @@ import ErrorHandler from "../utils/errorHandler.js";
 
  const getAllproducts = asyncHandler (
     async (req,res,next) => {
-        const products = await Product.find();
+
+        const resultPerPage = 5;
+
+        const apiFeature = new ApiFeatures(Product.find(),req.query)
+        .search()
+        .pagination(resultPerPage);
+
+        const products = await apiFeature.query;
+
         res.status(200).json({
             success:true,
-            products
+            products,
         });
     })
 
@@ -29,8 +39,8 @@ import ErrorHandler from "../utils/errorHandler.js";
 // get product details
 
  const getProductDetails = asyncHandler (async (req,res,next) => {
-    const product = await Product.findById(req.params.id);
-
+    const product = await Product.findById(req.params.id)
+    
     if(!product){
         return next( new ErrorHandler("Product Not Found",404))
     }
