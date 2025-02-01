@@ -30,4 +30,4 @@ const authorizeRoles = (...roles) => {
     }
 }
 
-export { isAuthenticationUser, authorizeRoles }
+export { isAuthenticationUser,authorizeRoles }

@@ -3,6 +3,7 @@ import asyncHandler from "../middleware/asyncHandler.js";
 import { User } from "../models/userModel.js";
 import sendToken from "../utils/jwtToken.js";
 import sendEmail from "../utils/sendEmail.js";
+import crypto from "crypto";
 
 // Register a User
 
@@ -64,23 +65,29 @@ const logout = asyncHandler (async (req,res,next) => {
 
 // Forgot password
 const forgotPassword = asyncHandler( async (req,res,next) => {
-    const user = await User.findOne({ email: req.body.email })
+    const user = await User.findOne( {Email:req.body.email} )
+    console.log(user);
+    
 
     if(!user){
         return next( new ErrorHandler("User not found",404))
     }
 
-    // Get reset password token
-    getResetPasswordToken();
+    // Get reset password token.............................this code is not working 
 
-    const resetToken = user.resetPasswordToken();
+    const resetToken =  await user.getResetPasswordToken();
+    console.log(resetToken);
+    
 
     await user.save({ validateBeforeSave: false})
 
     const resetPasswordUrl = `${req.protocol}://${req.get("host")}/api/v1/password/reset/${resetToken}`
+    console.log(resetPasswordUrl);
     
-    const message = `Your password reset token is :- \n\n ${resetPasswordUrl} \n\n if you have not requested this email then, please ignore it`;
 
+    const message = `Your password reset token is :- \n\n ${resetPasswordUrl} \n\n if you have not requested this email then, please ignore it`;
+    console.log(message);
+    
     try {
         
         await sendEmail({
@@ -103,5 +110,148 @@ const forgotPassword = asyncHandler( async (req,res,next) => {
     }
 });
 
+// Reset Password
+const resetPassword = asyncHandler(async () => {
+    
+    // creating token hash
+    const resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex")
 
-export { registerUser,loginUser,logout,forgotPassword }
+    const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() },
+    })
+
+    if(!user){
+        return next( new ErrorHandler("Reset Password Token is invalid or has been expired",400))
+    }
+
+    if(req.body.password !== req.body.confirmPassword){
+        return next(new ErrorHandler("Password does not match password",400))
+    } 
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    
+    await user.save();
+
+    sendToken(user,200,res);
+})
+
+// Get user details
+const getUserDetails = asyncHandler(async (req,res,next) => {
+    const user = await User.findById(req.user.id);
+
+    res.status(200).json({
+        success: true,
+        user,
+    });
+});
+
+// Update User Password
+const updatePassword = asyncHandler(async (req,res,next) => {
+    const user = await User.findById(req.user.id).select("+password");
+
+    const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
+
+    if(!isPasswordMatched){
+        return next( new ErrorHandler("Old password is incorrect",400))
+    }
+
+    if(req.body.newPassword !== req.body.confirmPassword) {
+        return next(new ErrorHandler("Password does not match",400));
+    } 
+
+    user.password = req.body.newPassword;
+
+    await user.save();
+    
+    sendToken(user,200,res)
+
+    });
+
+// Update User Profile
+const updateProfile = asyncHandler(async (req,res,next) => {
+    
+    const newUserData = {
+        name: req.body.name,
+        email: req.body.email,
+    }
+
+    // we will add cloudinary later
+
+    const user = await User.findByIdAndUpdate(req.user.id, newUserData)
+
+    res.status(200).json({
+        success: true,
+    });
+
+});
+
+// Get All user (admin)
+ const getAllUser = asyncHandler(async (req,res,next) => {
+    const users = await User.find();
+
+    res.status(200).json({
+        success: true,
+        users,
+    });
+ })
+
+// Get single user (admin)
+ const getSingleUser = asyncHandler(async (req,res,next) => {
+    const user = await User.findById(req.params.id);
+
+    if(!user){
+        return next( new ErrorHandler(`User does not exist with Id: ${req.params.id}`))
+    }
+
+    res.status(200).json({
+        success: true,
+        user,
+    });
+ })
+
+ // Update User role (admin)
+const updateUserRole = asyncHandler(async (req,res,next) => {
+    
+    const newUserData = {
+        name: req.body.name,
+        email: req.body.email,
+        role: req.body.role,
+    }
+
+    const user = await User.findByIdAndUpdate(req.params.id, newUserData)
+
+    if(!user){
+        return next( new ErrorHandler(`User does not exist with Id: ${req.params.id} can not update`))
+    }
+
+    res.status(200).json({
+        success: true,
+    });
+
+});
+
+ // Delete User (admin)
+const deleteUser = asyncHandler(async (req,res,next) => {
+    
+    const user = await User.findById(req.params.id);
+
+    // we will remove cloudinary later
+
+    if(!user){
+        return next( new ErrorHandler(`User does not exist with Id: ${req.params.id}`))
+    }
+
+    await user.deleteOne();
+
+    res.status(200).json({
+        success: true,
+        message: "User deleted successfully"
+    });
+
+});
+
+
+export { registerUser,loginUser,logout,forgotPassword,resetPassword,getUserDetails,updatePassword,updateProfile,getAllUser,getSingleUser,updateUserRole,deleteUser }
