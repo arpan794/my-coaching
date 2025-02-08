@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 function CourseScreen() {
   const { id } = useParams();  // Destructure the `id` from the params
   const dispatch = useDispatch();
-  const { loading, error, product } = useSelector((state) => state.productDetails);
+  const {   product } = useSelector((state) => state.productDetails);
 
   useEffect(() => {
     if (id) {
@@ -34,7 +34,7 @@ function CourseScreen() {
           <div className="card bg-light">
             <div className="row g-0">
               <div className="col-md-4">
-                <img src={product.images[0].url} className="img-fluid rounded-start" alt="..." />
+                <img src={product.name} className="img-fluid rounded-start" alt="..." />
               </div>
               <div className="col-md-8">
                 <div className="card-body">
@@ -77,14 +77,14 @@ function CourseScreen() {
           <div className="row bg-light mb-5">
             <div className="col border rounded">
               <div className="col-2">
-                <img src={product.instructor[0].images[0].url} className="img-fluid" alt="..." />
+                <img src={product.name} className="img-fluid" alt="..." />
               </div> 
-              <h4><p>{product.instructor[0].name}</p></h4>
-              <h5><p>{product.instructor[0].expertise}</p></h5>
+                <h4><p>{product.name}</p></h4>
+                <h5><p>{product.name}</p></h5>
 
-              <h6>{product.instructor[0].description}</h6>
+                <h6>{product.name}</h6>
               <p>Associated Batches:</p>
-              <p>{product.instructor[0].batches}</p>
+                <p>{product.name}</p>
             </div>
           </div>
         </div>

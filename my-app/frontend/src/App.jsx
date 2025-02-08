@@ -6,6 +6,7 @@ import HomeScreen from "./screens/HomeScreen"
 import LoginScreen from "./screens/LoginScreen"
 import SignupScreen from "./screens/SignupScreen"
 import AboutUsScreen from "./screens/AboutUsScreen"
+import Search from "./components/Search.jsx"
 
 
 
@@ -22,6 +23,7 @@ function App() {
       <Route path="/login" element={<LoginScreen/>}/>
       <Route path="/signup" element={<SignupScreen/>}/>
       <Route path="/course1" element={<CourseScreen/>}/>
+      <Route path="/products/:searchkeyword" element={<HomeScreen/>}/>
     </Routes>
    
     </div>

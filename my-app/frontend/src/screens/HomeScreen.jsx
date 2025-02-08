@@ -1,18 +1,26 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 import { NavLink } from "react-router-dom";
 import Product from "../components/Product"
 import { getProduct } from "../actions/productAction.jsx";
 import { useSelector, useDispatch } from "react-redux";
-
+import { useNavigate, useParams } from 'react-router-dom';
+import Search from "../components/Search.jsx";
 
 function HomeScreen() {
   const dispatch = useDispatch();
-  const { loading,error,products } = useSelector((state) => state.products);
+ 
+  const { keyword } = useParams();  // React Router v6+ uses useParams to get URL params
+  const { loading, error, products } = useSelector((state) => state.products);
 
+  
+
+  // Dispatch product fetching based on the keyword (either from URL or search)
   useEffect(() => {
-    dispatch(getProduct());
-  },[dispatch]);
+    dispatch(getProduct(keyword || ""));
+  }, [dispatch, keyword]);
+
+  
 
   return (
     <>
@@ -31,17 +39,7 @@ function HomeScreen() {
     <div class="container text-center mt-4">
       <div class="row justify-content-md-center">
         <div class="col-md-6">
-          <form class="d-flex" role="search">
-            <input
-              class="form-control me-2 border-primary-subtle border-5 "
-              type="search"
-              placeholder="Search"
-              aria-label="Search"
-            />
-            <button class="btn btn-primary" type="submit">
-              Search
-            </button>
-          </form>
+           <Search/>
         </div>
       </div>
     </div>
